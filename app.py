@@ -42,11 +42,14 @@ st.title("🏆 NFBC Roto Standings Viewer")
 
 st.markdown("""
 ### 📝 Instructions:
-1. Download the sample file: [espn_roto_standings.csv](https://github.com/schinnith/baseballmins_roto/raw/main/espn_roto_standings.csv)
-2. Open in Excel or Google Sheets  
-3. Paste over the cells with your ESPN standings **without changing the structure**
-4. Save as CSV and re-upload it here
+1. Go to our ESPN league standings page.
+2. Highlight from **“Season Stats”** to the final **“Moves”** cell of the last team.
+3. **Copy** that selection and **paste as plain text** (or “paste values only”) into the downloaded  
+   [espn_roto_standings.csv](https://github.com/schinnith/baseballmins_roto/raw/main/espn_roto_standings.csv), starting at **cell A1**.
+4. Be sure it replaces the existing content without adding rows or columns.
+5. Save the file as CSV and upload it below.
 """)
+
 
 
 # File upload
@@ -68,5 +71,13 @@ if uploaded_file:
     st.subheader("🔢 Roto Standings")
     st.dataframe(roto_sorted.style.format(precision=1))
 
-    st.subheader("📊 Raw Category Totals")
-    st.dataframe(df.style.format(precision=3))
+    # Format raw stats: only AVG, ERA, WHIP need decimals
+decimal_cols = ['AVG', 'ERA', 'WHIP']
+format_dict = {col: '{:.3f}' for col in decimal_cols}
+for col in df.columns:
+    if col not in format_dict:
+        format_dict[col] = '{:.0f}'
+
+st.subheader("📊 Raw Category Totals")
+st.dataframe(df.style.format(format_dict))
+
