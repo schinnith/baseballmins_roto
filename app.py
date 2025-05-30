@@ -28,13 +28,21 @@ def parse_structured_csv(uploaded_file):
     stat_headers = df.iloc[16].dropna().tolist()
 
     # Category totals: rows 18–27
-    stat_rows = df.iloc[17:27, 0:len(stat_headers)].applymap(lambda x: float(str(x).replace(',', '')))
+    try:
+        stat_rows = df.iloc[17:27, 0:len(stat_headers)].applymap(
+            lambda x: float(str(x).replace(',', ''))
+        )
+    except Exception as e:
+        st.error("⚠️ Could not parse stats — make sure your pasted data matches the template exactly (e.g., no extra rows, paste as plain text, start from 'Season Stats' and stop after the last team's 'Moves').")
+        st.stop()
+
     stat_rows.columns = stat_headers
 
     # Merge
     final_df = pd.DataFrame({'Team': team_names})
     final_df = pd.concat([final_df.reset_index(drop=True), stat_rows.reset_index(drop=True)], axis=1)
     return final_df
+
 
 # === STREAMLIT APP ===
 st.set_page_config(page_title="NFBC Roto Standings", layout="wide")
@@ -49,8 +57,6 @@ st.markdown("""
 4. Be sure it replaces the existing content without adding rows or columns.
 5. Save the file as CSV and upload it below.
 """)
-
-
 
 # File upload
 uploaded_file = st.file_uploader("📤 Upload your ESPN CSV export", type="csv")
@@ -72,12 +78,11 @@ if uploaded_file:
     st.dataframe(roto_sorted.style.format(precision=1))
 
     # Format raw stats: only AVG, ERA, WHIP need decimals
-decimal_cols = ['AVG', 'ERA', 'WHIP']
-format_dict = {col: '{:.3f}' for col in decimal_cols}
-for col in df.columns:
-    if col not in format_dict:
-        format_dict[col] = '{:.0f}'
+    decimal_cols = ['AVG', 'ERA', 'WHIP']
+    format_dict = {col: '{:.3f}' for col in decimal_cols}
+    for col in df.columns:
+        if col not in format_dict:
+            format_dict[col] = '{:.0f}'
 
-st.subheader("📊 Raw Category Totals")
-st.dataframe(df.style.format(format_dict))
-
+    st.subheader("📊 Raw Category Totals")
+    st.dataframe(df.style.format(format_dict))
