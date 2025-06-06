@@ -7,7 +7,7 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils import get_column_letter
 
 # === CONFIG ===
-CSV_PATH = "C:/Users/chris/nfbc_projects/Python Projects/espn_roto_standings/roto_points_tracker.csv"
+CSV_PATH = r"C:\Users\chris\nfbc_projects\Python Projects\espn_roto_standings\espn_roto_standings.csv"
 OUTPUT_XLSX = CSV_PATH.replace(".csv", "_formatted.xlsx")
 ASCENDING_CATEGORIES = ['ERA', 'WHIP']
 DESCENDING_CATEGORIES = ['R', 'HR', 'RBI', 'SB', 'AVG', 'K', 'W', 'SV']
@@ -67,22 +67,31 @@ def autofit_columns(ws):
 
 # === READ FROM STRUCTURED ESPN CSV ===
 def parse_structured_csv(filepath):
+    # Read as a table, skip empty lines
     df = pd.read_csv(filepath, header=None, encoding='latin1')
+    # Find the row with 'R' as the first column (stat headers)
+    stat_header_row = df[df[0] == 'R'].index[0]
+    # The next row is the first team stats row
+    stats_start = stat_header_row + 1
 
-    # Get team names from rows 4–15 (Excel = rows 5–16)
-    team_names = df.iloc[3:15, 1].dropna().tolist()
+    # Find the first empty row after stats (end of stats)
+    stats_end = stats_start
+    while stats_end < len(df) and pd.notnull(df.iloc[stats_end, 0]):
+        stats_end += 1
 
-    # Stat headers from row 17 (index 16)
-    stat_headers = df.iloc[16].dropna().tolist()
+    # Get team names from the rows above the stat header
+    team_rows = df.loc[3:12, 1].tolist()  # 10 teams, adjust if needed
 
-    # Category totals from rows 18–27 (index 17–26)
-    stat_rows = df.iloc[17:27, 0:len(stat_headers)].applymap(lambda x: float(str(x).replace(',', '')))
-    stat_rows.columns = stat_headers
+    # Get stat headers
+    stat_headers = df.iloc[stat_header_row].tolist()
+    # Get stats
+    stats = df.iloc[stats_start:stats_end, :len(stat_headers)]
+    stats.columns = stat_headers
+    stats = stats.reset_index(drop=True)
 
-    # Combine
-    final_df = pd.DataFrame({'Team': team_names})
-    final_df = pd.concat([final_df.reset_index(drop=True), stat_rows.reset_index(drop=True)], axis=1)
-    return final_df
+    # Insert team names
+    stats.insert(0, 'Team', team_rows)
+    return stats
 
 # === MAIN ===
 def main():

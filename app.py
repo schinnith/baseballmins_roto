@@ -21,21 +21,16 @@ def calculate_roto_points(series, ascending):
 def parse_structured_csv(uploaded_file):
     df = pd.read_csv(uploaded_file, header=None, encoding='latin1')
 
-    # Team names: rows 4–15 (Excel row 5–16)
-    team_names = df.iloc[3:15, 1].dropna().tolist()
+    # Team names: rows 3–12 (index), column 1
+    team_names = df.iloc[3:13, 1].tolist()
 
-    # Stat headers in row 17
-    stat_headers = df.iloc[16].dropna().tolist()
+    # Stat headers: row 14 (index 14)
+    stat_headers = df.iloc[14].dropna().tolist()
 
-    # Category totals: rows 18–27
-    try:
-        stat_rows = df.iloc[17:27, 0:len(stat_headers)].applymap(
-            lambda x: float(str(x).replace(',', ''))
-        )
-    except Exception as e:
-        st.error("⚠️ Could not parse stats — make sure your pasted data matches the template exactly (e.g., no extra rows, paste as plain text, start from 'Season Stats' and stop after the last team's 'Moves').")
-        st.stop()
-
+    # Category totals: rows 15–24 (index), columns 0:len(stat_headers)
+    stat_rows = df.iloc[15:25, 0:len(stat_headers)].applymap(
+        lambda x: float(str(x).replace(',', '')) if pd.notnull(x) and str(x).replace('.', '', 1).replace('-', '', 1).isdigit() else x
+    )
     stat_rows.columns = stat_headers
 
     # Merge
