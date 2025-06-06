@@ -48,7 +48,7 @@ st.markdown("""
 1. Go to our ESPN league standings page.
 2. Highlight from **“Season Stats”** to the final **“Moves”** cell of the last team.
 3. **Copy** that selection and **paste as plain text** (or “paste values only”) into the downloaded  
-   [espn_roto_standings.csv](https://github.com/schinnith/baseballmins_roto/raw/main/espn_roto_standings.csv), starting at **cell A1**.
+   [espn_roto_standings.csv](https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/main/espn_roto_standings.csv), starting at **cell A1**.
 4. Be sure it replaces the existing content without adding rows or columns.
 5. Save the file as CSV and upload it below.
 """)
